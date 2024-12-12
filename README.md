@@ -15,6 +15,7 @@ Microsoft Azure cloud enviornment.<br />
 - Microsoft Azure (Virtual Machines/Computer)
 - Remote Desktop
 - Active Directory Users and Computers
+- PowerShell
 - Domain Controller - Windows Server 2022  </b> 
 - Client-1 - Windows 10 
 
@@ -67,7 +68,7 @@ To do this you will click
 
 ## Step 6 Log into DC-1 and disable firwall to check connectivity  
 
-Now we are logging into the DC-1 virtual machine while in there we will disable the windows firewall so we can test connectivity normally we wouldnt do this but for the purpose of this tutorial we will be so go ahead and log into your Dc-1 Machine right click the windows button click run and type "wf.msc" this will bring up the windows firewall settings from there go ahead and turn them all off and then click apply 
+Now we are logging into the DC-1 virtual machine while in there we will disable the windows firewall so we can test connectivity normally we wouldnt do this but for the purpose of this tutorial we will be so go ahead and log into your Dc-1 Machine right click the windows button click run and type "wf.msc" this will bring up the windows firewall settings from there go ahead and turn them all off and then click apply this will allow us to ping off of DC-1 later from the client VM to ensure everything is set up correctly. 
 
 
 ![disable firewall](https://github.com/user-attachments/assets/79165a3c-3885-487f-9b80-a0d74710d6ee)
@@ -81,7 +82,10 @@ Networking-> Networksettings-> network interface/ip Configuration ->DNS servers-
 and from there you will paste in the IP address of DC-1 and click save 
 doing this allows us to join the domain. we will now from the Azure portal restart Client-1 
 
-## Step 8 log into Client-1 and attempt to Ping DC-1
+![image](https://github.com/user-attachments/assets/22dbc9e0-31bd-4846-a959-457ba739dade)
+
+
+## Step 8 Log into Client-1 and attempt to Ping DC-1
 
 From here we are going to log into client-1 using remote desktop and going to attempt to ping DC-1s private IP address using Powershell. once logged on just search powershell and it should come up. type ping and then input DC-1s private IP address if all the steps above were done correctly you will recive a ping back. If you do not recieve a ping back and you want to trouble shoot, you are either on a different virtual networks than DC-1 or windows firewall on Dc-1 wasnt completely shut off 
 
@@ -89,8 +93,60 @@ From here we are going to log into client-1 using remote desktop and going to at
 
 ![ipconfig all](https://github.com/user-attachments/assets/fb2ac959-2b0a-4872-943b-3a1d157457ea)
 
+## Step 9 Install Active Directory 
 
+You are now going to log into DC-1's virtual machine and in the server manager menu click Roles and features. Keep clicking next until you come to the server roles tab and from there 
+click ->Active Directory Domain Services-> features and install 
 
+![deploy active direcotry services](https://github.com/user-attachments/assets/8cae3e0c-6abe-426d-9915-24d048d1ca2f)
 
+![installing ad](https://github.com/user-attachments/assets/2a025dee-d1be-4cc0-94c2-27950d6e4b20)
 
+## Step 10 Promote Dc-1 VM to a Domain Controller 
+
+You are now going to go back to the service manager Dashboard and click the flag in the upper right hand corner and then click promote this server to domain controller 
+
+![promote DC1](https://github.com/user-attachments/assets/73c02603-a5df-4ced-840a-18887bf1b7a0)
+
+once that has been done you will click "Add a new forest" and name your domain 
+create a DSRM password click next
+
+![add a new forest](https://github.com/user-attachments/assets/b909a711-9bbe-43b7-81f4-999dd63eb92f)
+
+Once done with the Prereq check you can just click install 
+
+![install](https://github.com/user-attachments/assets/bf857620-3137-4863-ba48-a8b5de6180bd)
+
+Once its done installing the system will automatically restart and log you out 
+
+![reset](https://github.com/user-attachments/assets/fd22a981-acd2-401e-b50a-95460e3a391e)
+
+## Step 11 Login into Dc-1 as a domain controller 
+
+Now we will log back into DC-1 now that we are a domain controller will need to login differently. 
+you will need to specify that you want to login as a Domain user and you will have to specify which domain as shown below 
+
+![my domain login](https://github.com/user-attachments/assets/2eb03f0f-6e05-4437-923d-7a7220ccbf26)
+
+## 12 Create domain admin user within the domain. 
+
+Now we are going to create organizational units and then and admin user and place them within the domain. 
+To Start this we will click the windows button->windows admininistrative tools-> active directory users and computers. Then we will create an organizational folder title "_EMPLOYEES" and then another one called "_ADMINS"
+To do this you will right click mydomain.com->new->Organizational unit
+
+![creating org units](https://github.com/user-attachments/assets/36156d2a-52ab-42a4-8a37-bb24d67f7850)
+
+Now we will create a new employee, and we will add them to the Domain Admins security group. 
+To do this you will go to the admins folder right click -> New -> User
+from there you will create you employee and set their password 
+
+![jane doe](https://github.com/user-attachments/assets/3edc9f44-819f-4504-8d7e-6bafc8125172)
+
+Once finished you will see them in you admins directory 
+
+![in directory](https://github.com/user-attachments/assets/84dcc054-f304-43e0-9e69-841cec9e5906)
+
+Just because they are in your _ADMINS folder doesnt make them an admin so from here we will right click their name -> properties -> member of -> add-> then type domain admins -> ok -> apply 
+<p>Now this account is an actual domain admin, 
+and this Completes Tutorial for Active Directory Within Azure VMs.
 
